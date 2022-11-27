@@ -29,10 +29,10 @@ VOCAB_FILES_NAMES = {'vocab_file': 'spiece.model'}
 PRETRAINED_VOCAB_FILES_MAP = {
     'vocab_file':
     {
-        'albert-base-v1': "https://huggingface.co/albert-base-v1/blob/main/spiece.model",
-        'albert-large-v1': "https://huggingface.co/albert-large-v1/blob/main/spiece.model",
-        'albert-xlarge-v1': "https://huggingface.co/albert-xlarge-v1/blob/main/spiece.model",
-        'albert-xxlarge-v1': "https://huggingface.co/albert-xxlarge-v1/blob/main/spiece.model",
+        'albert-base-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v1-spiece.model",
+        'albert-large-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v1-spiece.model",
+        'albert-xlarge-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v1-spiece.model",
+        'albert-xxlarge-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-v1-spiece.model",
         'albert-base-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v2-spiece.model",
         'albert-large-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v2-spiece.model",
         'albert-xlarge-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v2-spiece.model",
