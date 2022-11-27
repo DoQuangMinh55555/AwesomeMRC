@@ -31,10 +31,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 TF_ALBERT_PRETRAINED_MODEL_ARCHIVE_MAP = {
-    'albert-base-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v1-tf_model.h5",
-    'albert-large-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v1-tf_model.h5",
-    'albert-xlarge-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v1-tf_model.h5",
-    'albert-xxlarge-v1': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xxlarge-v1-tf_model.h5",
+    'albert-base-v1': "https://huggingface.co/albert-base-v1/blob/main/tf_model.h5",
+    'albert-large-v1': "https://huggingface.co/albert-large-v1/blob/main/tf_model.h5",
+    'albert-xlarge-v1': "https://huggingface.co/albert-xlarge-v1/blob/main/tf_model.h5",
+    'albert-xxlarge-v1': "https://huggingface.co/albert-xxlarge-v1/blob/main/tf_model.h5",
     'albert-base-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-base-v2-tf_model.h5",
     'albert-large-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-large-v2-tf_model.h5",
     'albert-xlarge-v2': "https://s3.amazonaws.com/models.huggingface.co/bert/albert-xlarge-v2-tf_model.h5",
