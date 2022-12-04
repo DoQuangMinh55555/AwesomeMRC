@@ -353,7 +353,7 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
                                             output_mode=output_mode,
                                             pad_on_left=bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
                                             pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
-                                            pad_token_segment_id=4 if args.model_type in ['xlnet'] else 0,output_feature=True,
+                                            pad_token_segment_id=0,
     )
     # if args.local_rank in [-1, 0]:
     #     logger.info("Saving features into cached file %s", cached_features_file)
