@@ -55,6 +55,9 @@ from transformers import (WEIGHTS_NAME, BertConfig,
                                   XLMRobertaConfig,
                                   XLMRobertaForSequenceClassification,
                                   XLMRobertaTokenizer,
+                                  ElectraConfig,
+                                  ElectraForSequenceClassification,
+                                  ElectraTokenizer
                                 )
 
 from transformers import AdamW, get_linear_schedule_with_warmup
@@ -69,7 +72,7 @@ csv.field_size_limit(sys.maxsize)
 logger = logging.getLogger(__name__)
 
 ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) for conf in (BertConfig, XLNetConfig, XLMConfig, 
-                                                                                RobertaConfig, DistilBertConfig)), ())
+                                                                                RobertaConfig, DistilBertConfig, ElectraConfig)), ())
 
 MODEL_CLASSES = {
     'bert': (BertConfig, BertForSequenceClassification, BertTokenizer),
@@ -79,6 +82,7 @@ MODEL_CLASSES = {
     'distilbert': (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
     'albert': (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
     'xlmroberta': (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+    'electra' : (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer),
 }
 
 
@@ -230,7 +234,7 @@ def evaluate(args, model, tokenizer, prefix=""):
 
     results = {}
     for eval_task, eval_output_dir in zip(eval_task_names, eval_outputs_dirs):
-        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
+        eval_dataset,id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
 
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
@@ -274,7 +278,7 @@ def evaluate(args, model, tokenizer, prefix=""):
             logits = logits.detach().cpu().numpy()
 
             for logit in logits:
-                qas_id = eval_dataset[num_id]
+                qas_id = id_map[num_id]
                 if qas_id in key_map:
                     logit_list = key_map[qas_id]
                     logit_list[0] += logit[0]
@@ -303,11 +307,9 @@ def evaluate(args, model, tokenizer, prefix=""):
         final_map = {}
         for idx, key in enumerate(key_map):
             key_list = key_map[key]
-            key_list[0] = key_list[0] / cnt_map[key]
-            key_list[1] = key_list[1] / cnt_map[key]
-            final_map[key] = key_list[1] - key_list[0]
+            final_map[key] = [str(key_list[0]), str(key_list[1])]
 
-        with open(os.path.join(args.output_dir, "cls_score.json"), "w") as writer:
+        with open(os.path.join(args.output_dir, prefix, "cls_score.json"), "w") as writer:
             writer.write(json.dumps(final_map, indent=4) + "\n")
 
         output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
@@ -346,7 +348,15 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         examples = processor.get_test_examples(args.predict_file)
     else:
         examples = processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
-    features = convert_examples_to_features(examples, tokenizer, label_list=label_list, max_length=args.max_seq_length, output_mode=output_mode)
+    features, id_map = convert_examples_to_features(examples,
+                                            tokenizer,
+                                            label_list=label_list,
+                                            max_length=args.max_seq_length,
+                                            output_mode=output_mode,
+                                            pad_on_left=bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
+                                            pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
+                                            pad_token_segment_id=4 if args.model_type in ['xlnet'] else 0,output_feature=True,
+    )
     # if args.local_rank in [-1, 0]:
     #     logger.info("Saving features into cached file %s", cached_features_file)
     #     torch.save(features, cached_features_file)
@@ -364,7 +374,7 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
  
     dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
-    return dataset
+    return dataset,id_map
 
 
 def main():
@@ -521,7 +531,7 @@ def main():
 
     # Training
     if args.do_train:
-        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
+        train_dataset,id_map = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
@@ -573,7 +583,7 @@ def main():
         model.to(args.device)
 
         eval_task = args.task_name
-        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
+        eval_dataset, id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
 
         args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
         # Note that DistributedSampler samples randomly
@@ -608,7 +618,7 @@ def main():
                 logits = model(**inputs)
                 logits = logits[0].detach().cpu().numpy()
                 for logit in logits:
-                    qas_id = eval_dataset[num_id]
+                    qas_id = id_map[num_id]
                     if qas_id in key_map:
                         logit_list = key_map[qas_id]
                         logit_list[0] += logit[0]
