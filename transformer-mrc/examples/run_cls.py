@@ -65,7 +65,7 @@ from transformers import glue_processors as processors
 from transformers import glue_convert_examples_to_features as convert_examples_to_features
 import sys
 import csv
-csv.field_size_limit(2147483647)
+csv.field_size_limit(sys.maxsize)
 logger = logging.getLogger(__name__)
 
 ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) for conf in (BertConfig, XLNetConfig, XLMConfig, 
@@ -346,7 +346,15 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         examples = processor.get_test_examples(args.predict_file)
     else:
         examples = processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
-    features,id_map = convert_examples_to_features(examples, tokenizer, label_list=label_list, max_length=args.max_seq_length, output_mode=output_mode)
+    features, id_map = convert_examples_to_features(examples,
+                                            tokenizer,
+                                            label_list=label_list,
+                                            max_length=args.max_seq_length,
+                                            output_mode=output_mode,
+                                            pad_on_left=bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
+                                            pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
+                                            pad_token_segment_id=4 if args.model_type in ['xlnet'] else 0,output_feature=True,
+    )
     # if args.local_rank in [-1, 0]:
     #     logger.info("Saving features into cached file %s", cached_features_file)
     #     torch.save(features, cached_features_file)
