@@ -521,7 +521,7 @@ def main():
 
     # Training
     if args.do_train:
-        train_dataset,id_map = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
+        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
@@ -573,7 +573,7 @@ def main():
         model.to(args.device)
 
         eval_task = args.task_name
-        eval_dataset, id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
+        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
 
         args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
         # Note that DistributedSampler samples randomly
@@ -608,7 +608,7 @@ def main():
                 logits = model(**inputs)
                 logits = logits[0].detach().cpu().numpy()
                 for logit in logits:
-                    qas_id = id_map[num_id]
+                    qas_id = eval_dataset[num_id]
                     if qas_id in key_map:
                         logit_list = key_map[qas_id]
                         logit_list[0] += logit[0]
