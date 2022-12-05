@@ -230,7 +230,7 @@ def evaluate(args, model, tokenizer, prefix=""):
 
     results = {}
     for eval_task, eval_output_dir in zip(eval_task_names, eval_outputs_dirs):
-        eval_dataset,id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
+        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
 
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
@@ -274,7 +274,7 @@ def evaluate(args, model, tokenizer, prefix=""):
             logits = logits.detach().cpu().numpy()
 
             for logit in logits:
-                qas_id = id_map[num_id]
+                qas_id = eval_dataset[num_id]
                 if qas_id in key_map:
                     logit_list = key_map[qas_id]
                     logit_list[0] += logit[0]
@@ -346,15 +346,7 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         examples = processor.get_test_examples(args.predict_file)
     else:
         examples = processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
-    features, id_map = convert_examples_to_features(examples,
-                                            tokenizer,
-                                            label_list=label_list,
-                                            max_length=args.max_seq_length,
-                                            output_mode=output_mode,
-                                            pad_on_left=bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
-                                            pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
-                                            pad_token_segment_id=4 if args.model_type in ['xlnet'] else 0,output_feature=True,
-    )
+    features = convert_examples_to_features(examples, tokenizer, label_list=label_list, max_length=args.max_seq_length, output_mode=output_mode)
     # if args.local_rank in [-1, 0]:
     #     logger.info("Saving features into cached file %s", cached_features_file)
     #     torch.save(features, cached_features_file)
@@ -372,7 +364,7 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
  
     dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
-    return dataset,id_map
+    return dataset
 
 
 def main():
