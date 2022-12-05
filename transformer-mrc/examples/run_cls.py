@@ -54,10 +54,7 @@ from transformers import (WEIGHTS_NAME, BertConfig,
                                   AlbertTokenizer,
                                   XLMRobertaConfig,
                                   XLMRobertaForSequenceClassification,
-                                  XLMRobertaTokenizer,
-                                  ElectraConfig,
-                                  ElectraForSequenceClassification,
-                                  ElectraTokenizer
+                                  XLMRobertaTokenizer
                                 )
 
 from transformers import AdamW, get_linear_schedule_with_warmup
@@ -72,7 +69,7 @@ csv.field_size_limit(sys.maxsize)
 logger = logging.getLogger(__name__)
 
 ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) for conf in (BertConfig, XLNetConfig, XLMConfig, 
-                                                                                RobertaConfig, DistilBertConfig, ElectraConfig)), ())
+                                                                                RobertaConfig, DistilBertConfig)), ())
 
 MODEL_CLASSES = {
     'bert': (BertConfig, BertForSequenceClassification, BertTokenizer),
@@ -82,7 +79,6 @@ MODEL_CLASSES = {
     'distilbert': (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
     'albert': (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
     'xlmroberta': (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
-    'electra' : (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer),
 }
 
 
