@@ -230,15 +230,15 @@ def evaluate(args, model, tokenizer, prefix=""):
 
     results = {}
     for eval_task, eval_output_dir in zip(eval_task_names, eval_outputs_dirs):
-        eval_dataset,id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
-
+        tuple_result = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
+        
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
 
         args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
         # Note that DistributedSampler samples randomly
-        eval_sampler = SequentialSampler(eval_dataset)
-        eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+        eval_sampler = SequentialSampler(tuple_result[0])
+        eval_dataloader = DataLoader(tuple_result[0], sampler=eval_sampler, batch_size=args.eval_batch_size)
 
         # multi-gpu eval
         if args.n_gpu > 1:
@@ -246,7 +246,7 @@ def evaluate(args, model, tokenizer, prefix=""):
 
         # Eval!
         logger.info("***** Running evaluation {} *****".format(prefix))
-        logger.info("  Num examples = %d", len(eval_dataset))
+        logger.info("  Num examples = %d", len(tuple_result[0]))
         logger.info("  Batch size = %d", args.eval_batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
@@ -573,12 +573,12 @@ def main():
         model.to(args.device)
 
         eval_task = args.task_name
-        eval_dataset, id_map = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
+        tuple_result = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True, predict=True)
 
         args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
         # Note that DistributedSampler samples randomly
-        eval_sampler = SequentialSampler(eval_dataset)
-        eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+        eval_sampler = SequentialSampler(tuple_result[0])
+        eval_dataloader = DataLoader(tuple_result[0], sampler=eval_sampler, batch_size=args.eval_batch_size)
 
         # multi-gpu eval
         if args.n_gpu > 1:
@@ -586,7 +586,7 @@ def main():
 
         # Eval!
         logger.info("***** Running evaluation *****")
-        logger.info("  Num examples = %d", len(eval_dataset))
+        logger.info("  Num examples = %d", len(tuple_result[0]))
         logger.info("  Batch size = %d", args.eval_batch_size)
         eval_loss = 0.0
         nb_eval_steps = 0
