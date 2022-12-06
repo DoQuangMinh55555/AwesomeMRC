@@ -274,7 +274,7 @@ def evaluate(args, model, tokenizer, prefix=""):
             logits = logits.detach().cpu().numpy()
 
             for logit in logits:
-                qas_id = id_map[num_id]
+                qas_id = tuple_result[1][num_id]
                 if qas_id in key_map:
                     logit_list = key_map[qas_id]
                     logit_list[0] += logit[0]
@@ -608,7 +608,7 @@ def main():
                 logits = model(**inputs)
                 logits = logits[0].detach().cpu().numpy()
                 for logit in logits:
-                    qas_id = id_map[num_id]
+                    qas_id = tuple_result[1][num_id]
                     if qas_id in key_map:
                         logit_list = key_map[qas_id]
                         logit_list[0] += logit[0]
