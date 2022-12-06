@@ -344,13 +344,8 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         examples = processor.get_test_examples(args.predict_file)
     else:
         examples = processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
-    features, id_map = convert_examples_to_features(examples,
-                                            tokenizer,
-                                            label_list=label_list,
-                                            max_length=args.max_seq_length,
-                                            output_mode=output_mode
-                                            
-    )
+    features = convert_examples_to_features(examples, tokenizer, label_list=label_list, max_length=args.max_seq_length, output_mode=output_mode)
+    id_map = convert_examples_to_features(examples, tokenizer, label_list=label_list, max_length=args.max_seq_length, output_mode=output_mode)
     # if args.local_rank in [-1, 0]:
     #     logger.info("Saving features into cached file %s", cached_features_file)
     #     torch.save(features, cached_features_file)
@@ -368,7 +363,8 @@ def load_and_cache_examples(args, task, tokenizer, evaluate=False, predict=False
         all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
  
     dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
-    return dataset,id_map
+    tuple_result = (dataset, id_map)
+    return tuple_result
 
 
 def main():
@@ -525,8 +521,8 @@ def main():
 
     # Training
     if args.do_train:
-        train_dataset,id_map = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
-        global_step, tr_loss = train(args, train_dataset, model, tokenizer)
+        tuple_result = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
+        global_step, tr_loss = train(args, tuple_result[0], model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
 
