@@ -300,20 +300,6 @@ def evaluate(args, model, tokenizer, prefix=""):
         result = compute_metrics(eval_task, preds, out_label_ids)
         results.update(result)
 
-        final_map = {}
-        for idx, key in enumerate(key_map):
-            key_list = key_map[key]
-            key_list[0] = key_list[0] / cnt_map[key]
-            key_list[1] = key_list[1] / cnt_map[key]
-            # key_list[0] = key_list[0]
-            # key_list[1] = key_list[1]
-            # final_map[key] = key_list[1]
-            # final_map[key] = key_list[1]*2
-            final_map[key] = key_list[1] - key_list[0]
-
-        with open(os.path.join(args.output_dir, prefix, "cls_score.json"), "w") as writer:
-            writer.write(json.dumps(final_map))
-
         output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
         with open(output_eval_file, "a") as writer:
             logger.info("***** Eval results {} *****".format(prefix))
