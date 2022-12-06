@@ -306,7 +306,7 @@ def evaluate(args, model, tokenizer, prefix=""):
             final_map[key] = [str(key_list[0]), str(key_list[1])]
 
         with open(os.path.join(args.output_dir, prefix, "cls_score.json"), "w") as writer:
-            writer.write(json.dumps(final_map, indent=4) + "\n")
+            writer.write(json.dumps(final_map))
 
         output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
         with open(output_eval_file, "a") as writer:
@@ -631,7 +631,7 @@ def main():
             final_map[key] = key_list[1] - key_list[0]
 
         with open(os.path.join(args.output_dir, "cls_score.json"), "w") as writer:
-            writer.write(json.dumps(final_map, indent=4) + "\n")
+            writer.write(json.dumps(final_map))
 
 if __name__ == "__main__":
     main()
